@@ -3,6 +3,7 @@ import querystring from 'querystring';
 import Navigation from '../../components/navigation/navigation.jsx';
 import Masthead from '../../components/masthead/masthead.jsx';
 import Repo from '../../components/repo/repo.jsx';
+import Pagination from '../../components/pagination/pagination.jsx';
 import SearchBar from '../../components/search_bar/search_bar.jsx';
 import moment from 'moment';
 import ReactPaginate from 'react-paginate';
@@ -17,7 +18,8 @@ export default class Index extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			repos : []
+			repos : [],
+			page : 0
 		};
 	}
 	handleChange(event) {
@@ -29,6 +31,7 @@ export default class Index extends React.Component {
 	formatDate(date) {
 		return moment.utc(date).fromNow();
 	}
+
 	// @TODO put in separate component so we don't have to rerender the nav each time
 	render() {
 		return <div id="page-home">
@@ -49,27 +52,15 @@ export default class Index extends React.Component {
 						/>
 					}) : <h2 className='no-results'>No Results Found</h2>
 				}
-				<ReactPaginate
-					forceSelected={this.state.page || 0}
-					previousLabel={"previous"}
-					nextLabel={"next"}
-					breakLabel={<a href="">...</a>}
-					pageNum={this.state.total / PER_PAGE}
-					marginPagesDisplayed={2}
-					pageRangeDisplayed={5}
-					clickCallback={this.handlePageClick}
-					containerClassName={"pagination"}
-					subContainerClassName={"pages pagination"}
-					activeClassName={"active"}
+				<Pagination
+					current={this.state.page}
+					total={Math.ceil(this.state.total / PER_PAGE)}
+					handleClick={this.handlePaginationClick.bind(this)}
 				/>
 		</div>;
 	}
 
-	handlePageClick({selected}) {
-		updateHash({page : selected});
-		global.scroll(0,0);
-		// global.alert(`test: ${JSON.stringify(arguments, null, 4)}`);
-	}
+
 
 	getRepos() {
 		const query = querystring.parse(global.location.hash.slice(1));
@@ -91,15 +82,31 @@ export default class Index extends React.Component {
 		// @todo grab endpoint from config
 		return global.fetch(`https://smiwuru1k0.execute-api.us-east-1.amazonaws.com/dev/repos?${querystring.stringify(apiParams)}`)
 			.then(x => x.json())
-			.then(resp => this.setState(
-				_.extend(
-					{},
-					this.state,
-					{total : resp.total, repos: resp.results, page : query.page }
-				)
-			));
-
+			.then(resp => {
+				const stateUpdates = {
+					total : parseInt(resp.total, 10),
+					repos: resp.results
+				};
+				if(query.page) {
+					stateUpdates.page = parseInt(query.page, 10);
+				}
+				this.setState(_.extend({}, this.state, stateUpdates));
+			});
 	}
+
+	handlePaginationClick(selected) {
+		global.scroll(0,0);
+		if (selected === 'prev') {
+			updateHash({page : this.state.page - 1});
+			return ;
+		}
+
+		if (selected === 'next') {
+			updateHash({page : this.state.page + 1});
+			return ;
+		}
+		updateHash({page : selected});
+	};
 
 	componentDidMount() {
 
