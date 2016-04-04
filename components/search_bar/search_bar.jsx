@@ -1,7 +1,7 @@
 import React from 'react';
 import SearchField from '../search_field/search_field.jsx';
 import Sorter from '../sorter/sorter.jsx';
-import updateHash from '../../util/updateHash';
+import updateHash from '../../util/update_hash';
 
 export default class SearchBar extends React.Component {
 	constructor(props) {
@@ -9,11 +9,11 @@ export default class SearchBar extends React.Component {
 	}
 
 	updateSearch(value) {
-		updateHash({ search : value });
+		updateHash({ search : value, page : 0 });
 	}
 
 	updateSort(value) {
-		updateHash({ sort : value });
+		updateHash({ sort : value, page : 0 });
 	}
 
 	render() {
