@@ -91,11 +91,11 @@ export default class Index extends React.Component {
 					stateUpdates.page = parseInt(query.page, 10);
 				}
 				this.setState(_.extend({}, this.state, stateUpdates));
+				global.scroll(0,0);
 			});
 	}
 
 	handlePaginationClick(selected) {
-		global.scroll(0,0);
 		if (selected === 'prev') {
 			updateHash({page : this.state.page - 1});
 			return ;
